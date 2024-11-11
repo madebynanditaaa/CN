@@ -1,0 +1,78 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+#define BUCKET_SIZE 10   // Maximum capacity of the bucket
+#define OUTPUT_RATE 4    // Rate at which data leaves the bucket
+
+void leakyBucket(int packets[], int n) {
+    int bucket = 0;  // Current size of the bucket
+    int time = 0;    // Time counter
+
+    printf("Time\tPacket\tBucket\tSent\tRemaining\n");
+    printf("=========================================\n");
+
+    for (int i = 0; i < n; i++) {
+        // Incoming packet size
+        int incoming = packets[i];
+        
+        // Display time and packet size
+        printf("%d\t%d\t", time, incoming);
+        
+        // Check if bucket can handle incoming packet
+        if (incoming + bucket > BUCKET_SIZE) {
+            printf("Overflow\t");  // Packet cannot fit, overflow occurs
+        } else {
+            bucket += incoming;  // Add packet to bucket
+            printf("%d\t", bucket);
+        }
+
+        // Transmit data according to the output rate
+        if (bucket >= OUTPUT_RATE) {
+            bucket -= OUTPUT_RATE;  // Transmit OUTPUT_RATE amount
+            printf("%d\t%d\n", OUTPUT_RATE, bucket);
+        } else {
+            printf("%d\t%d\n", bucket, 0);  // Transmit all remaining data
+            bucket = 0;
+        }
+
+        time++;  // Increment time for the next packet
+        sleep(1);  // Simulate real-time delay for next packet (optional)
+    }
+
+    // Drain remaining packets in the bucket after all packets are processed
+    while (bucket > 0) {
+        time++;
+        printf("%d\t--\t%d\t", time, bucket);
+
+        if (bucket >= OUTPUT_RATE) {
+            bucket -= OUTPUT_RATE;
+            printf("%d\t%d\n", OUTPUT_RATE, bucket);
+        } else {
+            printf("%d\t%d\n", bucket, 0);
+            bucket = 0;
+        }
+
+        sleep(1);  // Optional delay for realism
+    }
+}
+
+int main() {
+    int n;
+
+    // Get the number of packets
+    printf("Enter the number of packets: ");
+    scanf("%d", &n);
+
+    int packets[n];
+    printf("Enter the size of each packet:\n");
+    for (int i = 0; i < n; i++) {
+        printf("Packet %d: ", i + 1);
+        scanf("%d", &packets[i]);
+    }
+
+    // Execute the leaky bucket algorithm
+    leakyBucket(packets, n);
+
+    return 0;
+}
