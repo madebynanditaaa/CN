@@ -1,0 +1,81 @@
+#include <stdio.h>
+#include <string.h>
+
+// Structure to hold URL components
+struct URLComponents {
+    char protocol[20];
+    char domain[100];
+    char path[100];
+    char query[100];
+};
+
+// Function to split URL into components
+void splitURL(const char *url, struct URLComponents *components) {
+    char temp[300];
+    strcpy(temp, url);  // Copy the URL to a temporary buffer
+
+    // Step 1: Extract protocol
+    char *ptr = strstr(temp, "://");
+    if (ptr) {
+        *ptr = '\0';  // Terminate protocol part
+        strcpy(components->protocol, temp);
+        ptr += 3;  // Move pointer past "://"
+    } else {
+        strcpy(components->protocol, "");  // Default if no protocol is found
+        ptr = temp;  // Start from the beginning if no protocol
+    }
+
+    // Step 2: Extract domain
+    char *slash = strchr(ptr, '/');
+    if (slash) {
+        *slash = '\0';  // Terminate domain part
+        strcpy(components->domain, ptr);
+        ptr = slash + 1;  // Move pointer past "/"
+    } else {
+        strcpy(components->domain, ptr);  // Only domain present
+        ptr = NULL;  // No path or query part
+    }
+
+    // Step 3: Extract path
+    if (ptr) {
+        char *query = strchr(ptr, '?');
+        if (query) {
+            *query = '\0';  // Terminate path part
+            strcpy(components->path, ptr);
+            ptr = query + 1;  // Move pointer past "?"
+        } else {
+            strcpy(components->path, ptr);  // Only path is present
+            ptr = NULL;
+        }
+    } else {
+        strcpy(components->path, "");  // No path found
+    }
+
+    // Step 4: Extract query/parameters
+    if (ptr) {
+        strcpy(components->query, ptr);  // Copy remaining part as query
+    } else {
+        strcpy(components->query, "");  // No query found
+    }
+}
+
+int main() {
+    struct URLComponents components;
+    char url[300];
+
+    // Get URL from the user
+    printf("Enter a URL: ");
+    scanf("%s", url);
+
+    // Split the URL into components
+    splitURL(url, &components);
+
+    // Display the results
+    printf("\nURL Components:\n");
+    printf("Protocol: %s\n", components.protocol);
+    printf("Domain: %s\n", components.domain);
+    printf("Path: %s\n", components.path);
+    printf("Query: %s\n", components.query);
+
+    return 0;
+}
