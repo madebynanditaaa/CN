@@ -1,0 +1,71 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <time.h>
+
+#define WINDOW_SIZE 4
+#define TOTAL_FRAMES 10
+
+typedef struct {
+    int frame;
+    bool ack;
+} Frame;
+
+void send_frame(int frame) {
+    printf("Sending Frame %d\n", frame);
+}
+
+bool receive_ack(int frame) {
+    return (rand() % 2) == 0;
+}
+
+int main() {
+    Frame window[WINDOW_SIZE];
+    int base = 0; // The base of the window
+    int next_frame = 0;
+
+    srand(time(NULL));
+
+    // Initialize the window frames
+    for (int i = 0; i < WINDOW_SIZE; i++) {
+        window[i].frame = base + i;
+        window[i].ack = false;
+    }
+
+    while (base < TOTAL_FRAMES) {
+        // Send all frames in the window
+        for (int i = 0; i < WINDOW_SIZE && (base + i) < TOTAL_FRAMES; i++) {
+            if (!window[i].ack) {
+                send_frame(window[i].frame);
+            }
+        }
+
+        // Receive acknowledgment for frames
+        for (int i = 0; i < WINDOW_SIZE && (base + i) < TOTAL_FRAMES; i++) {
+            if (!window[i].ack && receive_ack(window[i].frame)) {
+                printf("Received ACK for Frame %d\n", window[i].frame);
+                window[i].ack = true;
+            }
+        }
+
+        // Slide the window forward for acknowledged frames
+        int shift = 0;
+        while (shift < WINDOW_SIZE && window[shift].ack) {
+            shift++;
+        }
+
+        // Shift the window
+        for (int i = 0; i < WINDOW_SIZE - shift; i++) {
+            window[i] = window[i + shift];
+        }
+        for (int i = WINDOW_SIZE - shift; i < WINDOW_SIZE; i++) {
+            window[i].frame = base + WINDOW_SIZE + (i - (WINDOW_SIZE - shift));
+            window[i].ack = false;
+        }
+        
+        base += shift;
+    }
+
+    printf("All frames sent and acknowledged successfully.\n");
+    return 0;
+}
