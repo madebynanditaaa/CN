@@ -1,0 +1,46 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <time.h>
+
+#define WINDOW_SIZE 4   // Number of frames that can be sent before an acknowledgment is required
+#define TOTAL_FRAMES 10 // Total frames to be sent
+
+void send_frame(int frame) {
+    printf("Sending Frame %d\n", frame);
+}
+
+bool receive_ack(int frame) {
+    // Randomly simulate frame acknowledgment or loss
+    return (rand() % 2) == 0;
+}
+
+int main() {
+    int next_frame = 0; // Next frame to send
+    int ack = 0;        // Acknowledgment tracker
+
+    srand(time(NULL));
+
+    while (ack < TOTAL_FRAMES) {
+        // Sending frames within the window
+        for (int i = 0; i < WINDOW_SIZE && (next_frame + i) < TOTAL_FRAMES; i++) {
+            send_frame(next_frame + i);
+        }
+
+        // Receiving acknowledgment for each frame in the window
+        for (int i = 0; i < WINDOW_SIZE && ack < TOTAL_FRAMES; i++) {
+            if (receive_ack(ack)) {
+                printf("Received ACK for Frame %d\n", ack);
+                ack++;
+                next_frame++;
+            } else {
+                printf("Timeout for Frame %d. Resending from Frame %d\n", ack, ack);
+                next_frame = ack;
+                break; // Go back and resend from the last unacknowledged frame
+            }
+        }
+    }
+
+    printf("All frames sent and acknowledged successfully.\n");
+    return 0;
+}
